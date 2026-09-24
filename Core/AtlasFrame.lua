@@ -107,12 +107,34 @@ function addon:PrevNextMap_OnClick(self)
 	end
 end
 
+local function SyncFrameTopLeft(sourceFrame, targetFrame)
+	local left = sourceFrame:GetLeft()
+	local top = sourceFrame:GetTop()
+	if left and top then
+		-- GetTop() is distance from BOTTOM; SetPoint with TOPLEFT needs offset from TOP
+		local uiHeight = UIParent:GetHeight()
+		targetFrame:ClearAllPoints()
+		targetFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", left, top - uiHeight)
+	else
+		-- Fallback: copy the raw anchor if geometry isn't ready
+		local point, relativeTo, relativePoint, x, y = sourceFrame:GetPoint(1)
+		if point then
+			targetFrame:ClearAllPoints()
+			targetFrame:SetPoint(point, relativeTo, relativePoint, x, y)
+		end
+	end
+end
+
 function addon:ToggleLegendPanel()
 	if (AtlasFrameSmall:IsVisible()) then
+		-- Switching small -> large; keep TOPLEFT fixed
+		SyncFrameTopLeft(AtlasFrameSmall, AtlasFrame)
 		ATLAS_SMALLFRAME_SELECTED = false
 		AtlasFrameSmall:Hide()
 		AtlasFrame:Show()
 	else
+		-- Switching large -> small; keep TOPLEFT fixed
+		SyncFrameTopLeft(AtlasFrame, AtlasFrameSmall)
 		ATLAS_SMALLFRAME_SELECTED = true
 		AtlasFrame:Hide()
 		AtlasFrameSmall:Show()
@@ -126,7 +148,21 @@ function AtlasFrameDropDownType_OnShow()
 	local catName = addon.dropdowns.DropDownLayouts_Order[addon.db.profile.options.dropdowns.menuType]
 	local subcatOrder = addon.dropdowns.DropDownLayouts_Order[catName]
 	if (catName and subcatOrder and type(subcatOrder) == "table") then
-		sort(subcatOrder)
+		local categoryPriority = {
+			[ATLAS_DDL_CONTINENT_EASTERN] = 1,
+			[ATLAS_DDL_CONTINENT_KALIMDOR] = 2,
+			[ATLAS_DDL_FLIGHTROUTES]      = 3,
+			[ATLAS_DDL_HTGT]              = 4,
+		}
+		sort(subcatOrder, function(a, b)
+			local pa = categoryPriority[a] or 99
+			local pb = categoryPriority[b] or 99
+			if pa ~= pb then
+				return pa < pb
+			else
+				return a < b
+			end
+		end)
 		for n = 1, #subcatOrder, 1 do
 			if (addon.dropdowns.DropDownLayouts[catName] and subcatOrder[n]) then
 				local subcatItems = addon.dropdowns.DropDownLayouts[catName][subcatOrder[n]]
@@ -207,8 +243,14 @@ function AtlasFrameDropDown_OnShow()
 						minRecLevel = info.minLevelSuggestion == 0 and info.minLevel or info.minLevelSuggestion
 					end
 
-					local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevel)
-					colortag = addon:FormatColor(dungeon_difficulty)
+					if (not minRecLevel and mapData.MinLevel and type(mapData.MinLevel) == "number") then
+						minRecLevel = mapData.MinLevel
+					end
+
+					if (minRecLevel) then
+						local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevel)
+						colortag = addon:FormatColor(dungeon_difficulty)
+					end
 				elseif (addon.db.profile.options.dropdowns.color and mapData.DungeonHeroicID) then
 					local minLevelH, minRecLevelH
 					if (GetLFGDungeonInfo) then
@@ -217,8 +259,13 @@ function AtlasFrameDropDown_OnShow()
 					if (minRecLevelH == 0) then
 						minRecLevelH = minLevelH
 					end
-					local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevelH)
-					colortag = addon:FormatColor(dungeon_difficulty)
+					if (not minRecLevelH and mapData.MinLevel and type(mapData.MinLevel) == "number") then
+						minRecLevelH = mapData.MinLevel
+					end
+					if (minRecLevelH) then
+						local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevelH)
+						colortag = addon:FormatColor(dungeon_difficulty)
+					end
 				elseif (addon.db.profile.options.dropdowns.color and mapData.DungeonMythicID) then
 					local minLevelM, minRecLevelM
 					if (GetLFGDungeonInfo) then
@@ -227,8 +274,13 @@ function AtlasFrameDropDown_OnShow()
 					if (minRecLevelM == 0) then
 						minRecLevelM = minLevelM
 					end
-					local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevelM)
-					colortag = addon:FormatColor(dungeon_difficulty)
+					if (not minRecLevelM and mapData.MinLevel and type(mapData.MinLevel) == "number") then
+						minRecLevelM = mapData.MinLevel
+					end
+					if (minRecLevelM) then
+						local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevelM)
+						colortag = addon:FormatColor(dungeon_difficulty)
+					end
 				elseif (addon.db.profile.options.dropdowns.color and mapData.MinLevel) then
 					if (type(mapData.MinLevel) == "number") then
 						local dungeon_difficulty = addon:GetDungeonDifficultyColor(mapData.MinLevel)

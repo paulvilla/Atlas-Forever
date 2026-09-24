@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.18.0 - September 24, 2026
+### Added
+- Added Alliance and Horde flight route maps in both Kalimdor and Eastern Kingdoms
+- Added Alliance and Horde boat and zeppelin travel route maps
+- Added maps for three new Forever dungeons: Hall of Thanes, Ruins of Lordaeron, and Dalaran City
+- Added automatic dungeon detection: Atlas now auto-selects the dungeon map when opened inside an instance
+- Added "How to Get There" (HTGT) maps showing dungeon entrance locations on the world map (available dungeons only)
+- Added level auto-detection with color-coded dungeon names in dropdowns based on minimum required level
+- Added horizontal scrollbar for images wider than 512px in both normal and minimized Atlas window
+- Added custom Forever dungeon maps (Hall of Thanes, Ruins of Lordaeron, Excavation Site, Dalaran City) with Blizzard-like style (unofficial artwork)
+- Forced consistent dropdown sorting order regardless of localization or player faction
+### Fixed
+- Fixed frame positioning error when minimizing Atlas window
+- Fixed frame position shifting incorrectly when minimizing/restoring the Atlas window
+- Protected item tooltips from crashing when item ID is missing or invalid
+- Unified MinLevel values across all Classic dungeons for consistent color coding
+
 ## 3.17.0 - September 22, 2026
 ### Added
 - WoW Forever: Adapted Atlas for WoW Forever server

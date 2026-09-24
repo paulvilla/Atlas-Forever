@@ -37,7 +37,7 @@
 ## Category-zhTW: 地圖
 
 ## Author: Lizerius (Fork from nanderson11)
-## Version: v3.17.0
+## Version: v3.18.0
 ## Group: Atlas
 ## X-Website: https://github.com/nanderson11/Atlas
 ## X-Category: Map
@@ -79,3 +79,6 @@ Integration\AtlasLootIntegration.lua
 
 # WoW Forever - Classic Era Only
 Data\Classic-Classic.lua
+Data\Classic-HTGT.lua
+Data\FlightRoutes-Forever.lua
+Data\Forever-Classic.lua

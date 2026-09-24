@@ -331,6 +331,7 @@ local function getOptions()
 											[3] = ATLAS_DDL_LEVEL,
 											[4] = ATLAS_DDL_PARTYSIZE,
 											[5] = ATLAS_DDL_TYPE,
+											[6] = ATLAS_DDL_FLIGHTROUTES,
 										}
 									end,
 									width = "double",

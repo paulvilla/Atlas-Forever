@@ -464,7 +464,21 @@ function addon:PopulateDropdowns()
 	local catName = addon.dropdowns.DropDownLayouts_Order[profile.options.dropdowns.menuType]
 	local subcatOrder = addon.dropdowns.DropDownLayouts_Order[catName]
 	if (catName and subcatOrder and type(subcatOrder) == "table") then
-		sort(subcatOrder)
+		local categoryPriority = {
+			[ATLAS_DDL_CONTINENT_EASTERN] = 1,
+			[ATLAS_DDL_CONTINENT_KALIMDOR] = 2,
+			[ATLAS_DDL_FLIGHTROUTES]      = 3,
+			[ATLAS_DDL_HTGT]              = 4,
+		}
+		sort(subcatOrder, function(a, b)
+			local pa = categoryPriority[a] or 99
+			local pb = categoryPriority[b] or 99
+			if pa ~= pb then
+				return pa < pb
+			else
+				return a < b
+			end
+		end)
 		for n = 1, #subcatOrder, 1 do
 			if (addon.dropdowns.DropDownLayouts[catName] and subcatOrder[n]) then
 				local subcatItems = addon.dropdowns.DropDownLayouts[catName][subcatOrder[n]]
@@ -913,6 +927,195 @@ local function getPlayerText(maxPlayers, maxPlayersH, maxPlayersM, icontext_inst
 	return playerText
 end
 
+local function SetupMapScroll(base)
+	local mapWidth = 512
+	local mapHeight = 512
+	if base and base.ImageSize then
+		mapWidth = base.ImageSize[1] or 512
+		mapHeight = base.ImageSize[2] or 512
+	end
+
+	local isWide = mapWidth > 512
+
+	-- Main map: horizontal scroll for wide images
+	if isWide then
+		if not AtlasMapScrollFrame then
+			AtlasMapScrollFrame = CreateFrame("ScrollFrame", "AtlasMapScrollFrame", AtlasFrame.MapFrame)
+			AtlasMapScrollFrame:SetPoint("TOPLEFT", 4, -4)
+			AtlasMapScrollFrame:SetSize(512, 512)
+			AtlasMapScrollFrame:SetFrameLevel(AtlasFrame.MapFrame:GetFrameLevel())
+			AtlasMapScrollFrame:EnableMouse(true)
+			AtlasMapScrollFrame:SetScript("OnMouseWheel", function(self, delta)
+				local current = self:GetHorizontalScroll()
+				local new = current - delta * 40
+				local maxScroll = self.maxScroll or self:GetHorizontalScrollRange()
+				if new < 0 then new = 0 end
+				if new > maxScroll then new = maxScroll end
+				self:SetHorizontalScroll(new)
+				if AtlasMapScrollBar then
+					AtlasMapScrollBar:SetValue(new)
+				end
+			end)
+
+			local scrollChild = CreateFrame("Frame", "AtlasMapScrollChild", AtlasMapScrollFrame)
+			AtlasMapScrollFrame:SetScrollChild(scrollChild)
+			AtlasMapScrollFrame.scrollChild = scrollChild
+
+			-- Horizontal scrollbar below the map (modern minimal style)
+			local slider = CreateFrame("Slider", "AtlasMapScrollBar", AtlasFrame.MapFrame)
+			slider:SetOrientation("HORIZONTAL")
+			slider:SetPoint("TOPLEFT", AtlasMapScrollFrame, "BOTTOMLEFT", 8, -10)
+			slider:SetPoint("TOPRIGHT", AtlasMapScrollFrame, "BOTTOMRIGHT", -8, -10)
+			slider:SetHeight(18)
+
+			-- Track line (thin, dark grey)
+			local track = slider:CreateTexture(nil, "BACKGROUND")
+			track:SetColorTexture(0.15, 0.15, 0.15, 0.6)
+			track:SetHeight(4)
+			track:SetPoint("LEFT", slider, "LEFT", 4, 0)
+			track:SetPoint("RIGHT", slider, "RIGHT", -4, 0)
+
+			-- Thumb (classic round scrollbar knob)
+			local thumb = slider:CreateTexture(nil, "OVERLAY")
+			thumb:SetTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
+			thumb:SetSize(30, 30)
+			thumb:SetVertexColor(0.95, 0.75, 0.32)
+			slider:SetThumbTexture(thumb)
+
+			slider:SetScript("OnValueChanged", function(self, value)
+				AtlasMapScrollFrame:SetHorizontalScroll(value)
+			end)
+		end
+
+		-- Scale to fit the fixed 512 height while preserving aspect ratio
+		local displayHeight = 512
+		local scale = displayHeight / mapHeight
+		local displayWidth = mapWidth * scale
+
+		local child = AtlasMapScrollFrame.scrollChild
+		child:SetSize(displayWidth, displayHeight)
+
+		AtlasMap:SetParent(child)
+		AtlasMap:ClearAllPoints()
+		AtlasMap:SetPoint("TOPLEFT", child, "TOPLEFT", 0, 0)
+		AtlasMap:SetSize(displayWidth, displayHeight)
+
+		local scrollWidth = displayWidth
+		if base and base.VisibleWidth then
+			scrollWidth = base.VisibleWidth
+		end
+		local maxScroll = math.max(0, scrollWidth - 512)
+		AtlasMapScrollFrame.maxScroll = maxScroll
+		AtlasMapScrollFrame:SetHorizontalScroll(0)
+		AtlasMapScrollFrame:Show()
+
+		if AtlasMapScrollBar then
+			AtlasMapScrollBar:SetMinMaxValues(0, maxScroll)
+			AtlasMapScrollBar:SetValueStep(1)
+			AtlasMapScrollBar:SetValue(0)
+			AtlasMapScrollBar:Show()
+		end
+	else
+		if AtlasMapScrollFrame then
+			AtlasMapScrollFrame:Hide()
+		end
+		if AtlasMapScrollBar then
+			AtlasMapScrollBar:Hide()
+		end
+		AtlasMap:SetParent(AtlasFrame.MapFrame)
+		AtlasMap:ClearAllPoints()
+		AtlasMap:SetPoint("TOPLEFT", AtlasFrame.MapFrame, "TOPLEFT", 4, -4)
+		AtlasMap:SetSize(512, 512)
+	end
+
+	-- Small map: horizontal scroll for wide images
+	if isWide then
+		if not AtlasMapSmallScrollFrame then
+			AtlasMapSmallScrollFrame = CreateFrame("ScrollFrame", "AtlasMapSmallScrollFrame", AtlasFrameSmall.MapFrame)
+			AtlasMapSmallScrollFrame:SetPoint("TOPLEFT", 4, -4)
+			AtlasMapSmallScrollFrame:SetSize(512, 512)
+			AtlasMapSmallScrollFrame:SetFrameLevel(AtlasFrameSmall.MapFrame:GetFrameLevel())
+			AtlasMapSmallScrollFrame:EnableMouse(true)
+			AtlasMapSmallScrollFrame:SetScript("OnMouseWheel", function(self, delta)
+				local current = self:GetHorizontalScroll()
+				local new = current - delta * 40
+				local maxScroll = self.maxScroll or self:GetHorizontalScrollRange()
+				if new < 0 then new = 0 end
+				if new > maxScroll then new = maxScroll end
+				self:SetHorizontalScroll(new)
+				if AtlasMapSmallScrollBar then
+					AtlasMapSmallScrollBar:SetValue(new)
+				end
+			end)
+
+			local smallScrollChild = CreateFrame("Frame", "AtlasMapSmallScrollChild", AtlasMapSmallScrollFrame)
+			AtlasMapSmallScrollFrame:SetScrollChild(smallScrollChild)
+			AtlasMapSmallScrollFrame.scrollChild = smallScrollChild
+
+			-- Horizontal scrollbar below the small map
+			local smallSlider = CreateFrame("Slider", "AtlasMapSmallScrollBar", AtlasFrameSmall.MapFrame)
+			smallSlider:SetOrientation("HORIZONTAL")
+			smallSlider:SetPoint("TOPLEFT", AtlasMapSmallScrollFrame, "BOTTOMLEFT", 8, -10)
+			smallSlider:SetPoint("TOPRIGHT", AtlasMapSmallScrollFrame, "BOTTOMRIGHT", -8, -10)
+			smallSlider:SetHeight(18)
+
+			local smallTrack = smallSlider:CreateTexture(nil, "BACKGROUND")
+			smallTrack:SetColorTexture(0.15, 0.15, 0.15, 0.6)
+			smallTrack:SetHeight(4)
+			smallTrack:SetPoint("LEFT", smallSlider, "LEFT", 4, 0)
+			smallTrack:SetPoint("RIGHT", smallSlider, "RIGHT", -4, 0)
+
+			local smallThumb = smallSlider:CreateTexture(nil, "OVERLAY")
+			smallThumb:SetTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
+			smallThumb:SetSize(30, 30)
+			smallThumb:SetVertexColor(0.95, 0.75, 0.32)
+			smallSlider:SetThumbTexture(smallThumb)
+
+			smallSlider:SetScript("OnValueChanged", function(self, value)
+				AtlasMapSmallScrollFrame:SetHorizontalScroll(value)
+			end)
+		end
+
+		local smallDisplayHeight = 512
+		local smallScale = smallDisplayHeight / mapHeight
+		local smallDisplayWidth = mapWidth * smallScale
+
+		local smallChild = AtlasMapSmallScrollFrame.scrollChild
+		smallChild:SetSize(smallDisplayWidth, smallDisplayHeight)
+
+		AtlasMapSmall:SetParent(smallChild)
+		AtlasMapSmall:ClearAllPoints()
+		AtlasMapSmall:SetPoint("TOPLEFT", smallChild, "TOPLEFT", 0, 0)
+		AtlasMapSmall:SetSize(smallDisplayWidth, smallDisplayHeight)
+
+		local smallMaxScroll = math.max(0, smallDisplayWidth - 512)
+		if base and base.VisibleWidth then
+			smallMaxScroll = math.max(0, base.VisibleWidth - 512)
+		end
+		AtlasMapSmallScrollFrame.maxScroll = smallMaxScroll
+		AtlasMapSmallScrollFrame:SetHorizontalScroll(0)
+		AtlasMapSmallScrollFrame:Show()
+
+		if AtlasMapSmallScrollBar then
+			AtlasMapSmallScrollBar:SetMinMaxValues(0, smallMaxScroll)
+			AtlasMapSmallScrollBar:SetValueStep(1)
+			AtlasMapSmallScrollBar:SetValue(0)
+			AtlasMapSmallScrollBar:Show()
+		end
+	else
+		if AtlasMapSmallScrollFrame then
+			AtlasMapSmallScrollFrame:Hide()
+		end
+		if AtlasMapSmallScrollBar then
+			AtlasMapSmallScrollBar:Hide()
+		end
+		AtlasMapSmall:SetParent(AtlasFrameSmall.MapFrame)
+		AtlasMapSmall:ClearAllPoints()
+		AtlasMapSmall:SetPoint("TOPLEFT", AtlasFrameSmall.MapFrame, "TOPLEFT", 4, -4)
+		AtlasMapSmall:SetSize(512, 512)
+	end
+end
+
 function Atlas_MapRefresh(mapID)
 	local zoneID = mapID or ATLAS_DROPDOWNS[profile.options.dropdowns.module][profile.options.dropdowns.zone]
 	if (not zoneID) then
@@ -1273,6 +1476,9 @@ function Atlas_MapRefresh(mapID)
 		AtlasMap_Text:Hide()
 		AtlasMapS_Text:Hide()
 	end
+
+	-- Setup horizontal scroll for wide maps (e.g. ship routes)
+	SetupMapScroll(base)
 
 	-- The boss description to be added here
 	addon:MapAddNPCButton()

@@ -113,9 +113,14 @@ function AtlasItemEntryMixin:OnClick()
 end
 
 function AtlasItemEntryMixin:OnEnter()
+	if not self.data.itemID then return end
 	GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
-	GameTooltip:SetHyperlink("item:"..self.data.itemID)
-	GameTooltip:Show()
+	local ok, err = pcall(GameTooltip.SetHyperlink, GameTooltip, "item:"..self.data.itemID)
+	if ok then
+		GameTooltip:Show()
+	else
+		GameTooltip:Hide()
+	end
 end
 
 function AtlasItemEntryMixin:OnLeave()
