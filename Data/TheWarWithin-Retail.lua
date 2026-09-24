@@ -38,11 +38,14 @@ local function Atlas_GetBossName(bossname, encounterID, creatureIndex)
 end
 
 -- Use https://wago.tools/db2/areatable for ids
-local z = C_Map.GetAreaInfo
+local function z(areaID)
+	local areaName = C_Map.GetAreaInfo(areaID)
+	return areaName or "Unknown Zone"
+end
 -- Use https://wago.tools/db2/JournalInstance for ids
 local function i(id)
 	local temp = EJ_GetInstanceInfo(id)
-	return temp
+	return temp or "Unknown Instance"
 end
 
 local BLUE = "|cff6666ff"

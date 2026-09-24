@@ -125,20 +125,24 @@ function AtlasFrameDropDownType_OnShow()
 	local i = 1
 	local catName = addon.dropdowns.DropDownLayouts_Order[addon.db.profile.options.dropdowns.menuType]
 	local subcatOrder = addon.dropdowns.DropDownLayouts_Order[catName]
-	if (subcatOrder and type(subcatOrder) == "table") then
+	if (catName and subcatOrder and type(subcatOrder) == "table") then
 		sort(subcatOrder)
 		for n = 1, #subcatOrder, 1 do
-			local subcatItems = addon.dropdowns.DropDownLayouts[catName][subcatOrder[n]]
-			local q = (#subcatItems - (#subcatItems % ATLAS_MAX_MENUITEMS)) / ATLAS_MAX_MENUITEMS
+			if (addon.dropdowns.DropDownLayouts[catName] and subcatOrder[n]) then
+				local subcatItems = addon.dropdowns.DropDownLayouts[catName][subcatOrder[n]]
+				if (subcatItems) then
+					local q = (#subcatItems - (#subcatItems % ATLAS_MAX_MENUITEMS)) / ATLAS_MAX_MENUITEMS
 
-			if (q > 0) then
-				for p = 0, q do
-					ATLAS_DROPDOWN_TYPES[i + p] = subcatOrder[n]..format(" %d/%d", p + 1, q + 1)
+					if (q > 0) then
+						for p = 0, q do
+							ATLAS_DROPDOWN_TYPES[i + p] = subcatOrder[n]..format(" %d/%d", p + 1, q + 1)
+						end
+					else
+						ATLAS_DROPDOWN_TYPES[i] = subcatOrder[n]
+					end
+					i = i + q + 1
 				end
-			else
-				ATLAS_DROPDOWN_TYPES[i] = subcatOrder[n]
 			end
-			i = i + q + 1
 		end
 	end
 	for j = 1, #Atlas_MapTypes, 1 do
@@ -183,154 +187,159 @@ function AtlasFrameDropDown_OnShow()
 	if (ATLAS_DROPDOWNS[addon.db.profile.options.dropdowns.module]) then
 		local temp = {}
 		for k, v in pairs(ATLAS_DROPDOWNS[addon.db.profile.options.dropdowns.module]) do
-			local colortag = ""
+			local mapData = AtlasMaps[v]
+			if not mapData then
+				-- Map doesn't exist, skip it
+			else
+				local colortag = ""
 
-			if (addon.db.profile.options.dropdowns.color and AtlasMaps[v].DungeonID) then
-				local minLevel, minRecLevel
-				if (GetLFGDungeonInfo) then
-					_, _, _, minLevel, _, _, minRecLevel = GetLFGDungeonInfo(AtlasMaps[v].DungeonID)
-				end
-				if (minRecLevel == 0) then
-					minRecLevel = minLevel
-				end
+				if (addon.db.profile.options.dropdowns.color and mapData.DungeonID) then
+					local minLevel, minRecLevel
+					if (GetLFGDungeonInfo) then
+						_, _, _, minLevel, _, _, minRecLevel = GetLFGDungeonInfo(mapData.DungeonID)
+					end
+					if (minRecLevel == 0) then
+						minRecLevel = minLevel
+					end
 
-				if (not minRecLevel and AtlasMaps[v].ActivityID) then
-					local info = C_LFGList.GetActivityInfoTable(AtlasMaps[v].ActivityID[2])
-					minRecLevel = info.minLevelSuggestion == 0 and info.minLevel or info.minLevelSuggestion
-				end
+					if (not minRecLevel and mapData.ActivityID) then
+						local info = C_LFGList.GetActivityInfoTable(mapData.ActivityID[2])
+						minRecLevel = info.minLevelSuggestion == 0 and info.minLevel or info.minLevelSuggestion
+					end
 
-				local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevel)
-				colortag = addon:FormatColor(dungeon_difficulty)
-			elseif (addon.db.profile.options.dropdowns.color and AtlasMaps[v].DungeonHeroicID) then
-				local minLevelH, minRecLevelH
-				if (GetLFGDungeonInfo) then
-					_, _, _, minLevelH, _, _, minRecLevelH = GetLFGDungeonInfo(AtlasMaps[v].DungeonHeroicID)
-				end
-				if (minRecLevelH == 0) then
-					minRecLevelH = minLevelH
-				end
-				local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevelH)
-				colortag = addon:FormatColor(dungeon_difficulty)
-			elseif (addon.db.profile.options.dropdowns.color and AtlasMaps[v].DungeonMythicID) then
-				local minLevelM, minRecLevelM
-				if (GetLFGDungeonInfo) then
-					_, _, _, minLevelM, _, _, minRecLevelM = GetLFGDungeonInfo(AtlasMaps[v].DungeonMythicID)
-				end
-				if (minRecLevelM == 0) then
-					minRecLevelM = minLevelM
-				end
-				local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevelM)
-				colortag = addon:FormatColor(dungeon_difficulty)
-			elseif (addon.db.profile.options.dropdowns.color and AtlasMaps[v].MinLevel) then
-				if (type(AtlasMaps[v].MinLevel) == "number") then
-					local dungeon_difficulty = addon:GetDungeonDifficultyColor(AtlasMaps[v].MinLevel)
+					local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevel)
 					colortag = addon:FormatColor(dungeon_difficulty)
+				elseif (addon.db.profile.options.dropdowns.color and mapData.DungeonHeroicID) then
+					local minLevelH, minRecLevelH
+					if (GetLFGDungeonInfo) then
+						_, _, _, minLevelH, _, _, minRecLevelH = GetLFGDungeonInfo(mapData.DungeonHeroicID)
+					end
+					if (minRecLevelH == 0) then
+						minRecLevelH = minLevelH
+					end
+					local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevelH)
+					colortag = addon:FormatColor(dungeon_difficulty)
+				elseif (addon.db.profile.options.dropdowns.color and mapData.DungeonMythicID) then
+					local minLevelM, minRecLevelM
+					if (GetLFGDungeonInfo) then
+						_, _, _, minLevelM, _, _, minRecLevelM = GetLFGDungeonInfo(mapData.DungeonMythicID)
+					end
+					if (minRecLevelM == 0) then
+						minRecLevelM = minLevelM
+					end
+					local dungeon_difficulty = addon:GetDungeonDifficultyColor(minRecLevelM)
+					colortag = addon:FormatColor(dungeon_difficulty)
+				elseif (addon.db.profile.options.dropdowns.color and mapData.MinLevel) then
+					if (type(mapData.MinLevel) == "number") then
+						local dungeon_difficulty = addon:GetDungeonDifficultyColor(mapData.MinLevel)
+						colortag = addon:FormatColor(dungeon_difficulty)
+					else
+						--colortag = ""
+					end
 				else
 					--colortag = ""
 				end
-			else
-				--colortag = ""
-			end
 
-			local zoneName         = AtlasMaps[v].ZoneName[1]
-			local instanceID       = AtlasMaps[v].JournalInstanceID or nil
-			local DungeonID        = AtlasMaps[v].DungeonID or nil
-			local DungeonHeroicID  = AtlasMaps[v].DungeonHeroicID or nil
-			local DungeonMythicID  = AtlasMaps[v].DungeonMythicID or nil
+				local zoneName         = mapData.ZoneName[1]
+				local instanceID       = mapData.JournalInstanceID or nil
+				local DungeonID        = mapData.DungeonID or nil
+				local DungeonHeroicID  = mapData.DungeonHeroicID or nil
+				local DungeonMythicID  = mapData.DungeonMythicID or nil
 
-			local typeID, subtypeID, minLevel, maxLevel
-			local typeIDH, subtypeIDH, minLevelH, maxLevelH
-			local typeIDM, subtypeIDM, minLevelM, maxLevelM
-			local colortagL, dungeon_difficulty
-			local icontext_heroic  = " |TInterface\\EncounterJournal\\UI-EJ-HeroicTextIcon:0:0|t"
-			local icontext_mythic  = " |TInterface\\AddOns\\Atlas\\Images\\UI-EJ-MythicTextIcon:0:0|t"
-			local icontext_dungeon = "|TInterface\\MINIMAP\\Dungeon:0:0|t"
-			local icontext_raid    = "|TInterface\\MINIMAP\\Raid:0:0|t"
-			local icontext_instance
+				local typeID, subtypeID, minLevel, maxLevel
+				local typeIDH, subtypeIDH, minLevelH, maxLevelH
+				local typeIDM, subtypeIDM, minLevelM, maxLevelM
+				local colortagL, dungeon_difficulty
+				local icontext_heroic  = " |TInterface\\EncounterJournal\\UI-EJ-HeroicTextIcon:0:0|t"
+				local icontext_mythic  = " |TInterface\\AddOns\\Atlas\\Images\\UI-EJ-MythicTextIcon:0:0|t"
+				local icontext_dungeon = "|TInterface\\MINIMAP\\Dungeon:0:0|t"
+				local icontext_raid    = "|TInterface\\MINIMAP\\Raid:0:0|t"
+				local icontext_instance
 
-			if (DungeonID) then
-				if (GetLFGDungeonInfo) then
-					_, typeID, subtypeID, minLevel, maxLevel = GetLFGDungeonInfo(DungeonID)
-				end
-			end
-			if (DungeonHeroicID) then
-				if (GetLFGDungeonInfo) then
-					_, typeIDH, subtypeIDH, minLevelH, maxLevelH = GetLFGDungeonInfo(DungeonHeroicID)
-				end
-			end
-			if (DungeonMythicID) then
-				if (GetLFGDungeonInfo) then
-					_, typeIDM, subtypeIDM, minLevelM, maxLevelM = GetLFGDungeonInfo(DungeonMythicID)
-				end
-			end
-			if ((typeID and typeID == 2) or (typeIDH and typeIDH == 2) or (typeIDM and typeIDM == 2)) then
-				icontext_instance = icontext_raid
-			elseif ((typeID and typeID == 1 and subtypeID == 3) or (typeIDH and typeIDH == 1 and subtypeIDH == 3) or (typeIDM and typeIDM == 1 and subtypeIDM == 3)) then
-				icontext_instance = icontext_raid
-			else
-				icontext_instance = icontext_dungeon
-			end
-			local levelString = ""
-			if (minLevel or minLevelH or minLevelM) then
-				local tmp_LR = " - "
-				if (minLevel) then
-					dungeon_difficulty = addon:GetDungeonDifficultyColor(minLevel)
-					colortagL = addon:FormatColor(dungeon_difficulty)
-					if (minLevel ~= maxLevel) then
-						tmp_LR = tmp_LR..colortagL..minLevel.."-"..maxLevel..icontext_instance
-					else
-						tmp_LR = tmp_LR..colortagL..minLevel..icontext_instance
+				if (DungeonID) then
+					if (GetLFGDungeonInfo) then
+						_, typeID, subtypeID, minLevel, maxLevel = GetLFGDungeonInfo(DungeonID)
 					end
 				end
-				if (minLevelH) then
-					dungeon_difficulty = addon:GetDungeonDifficultyColor(minLevelH)
-					colortagL = addon:FormatColor(dungeon_difficulty)
-					local slash
+				if (DungeonHeroicID) then
+					if (GetLFGDungeonInfo) then
+						_, typeIDH, subtypeIDH, minLevelH, maxLevelH = GetLFGDungeonInfo(DungeonHeroicID)
+					end
+				end
+				if (DungeonMythicID) then
+					if (GetLFGDungeonInfo) then
+						_, typeIDM, subtypeIDM, minLevelM, maxLevelM = GetLFGDungeonInfo(DungeonMythicID)
+					end
+				end
+				if ((typeID and typeID == 2) or (typeIDH and typeIDH == 2) or (typeIDM and typeIDM == 2)) then
+					icontext_instance = icontext_raid
+				elseif ((typeID and typeID == 1 and subtypeID == 3) or (typeIDH and typeIDH == 1 and subtypeIDH == 3) or (typeIDM and typeIDM == 1 and subtypeIDM == 3)) then
+					icontext_instance = icontext_raid
+				else
+					icontext_instance = icontext_dungeon
+				end
+				local levelString = ""
+				if (minLevel or minLevelH or minLevelM) then
+					local tmp_LR = " - "
 					if (minLevel) then
-						slash = L["Slash"]
-					else
-						slash = ""
+						dungeon_difficulty = addon:GetDungeonDifficultyColor(minLevel)
+						colortagL = addon:FormatColor(dungeon_difficulty)
+						if (minLevel ~= maxLevel) then
+							tmp_LR = tmp_LR..colortagL..minLevel.."-"..maxLevel..icontext_instance
+						else
+							tmp_LR = tmp_LR..colortagL..minLevel..icontext_instance
+						end
 					end
-					if (minLevelH ~= maxLevelH) then
-						tmp_LR = tmp_LR..slash..colortagL..minLevelH.."-"..maxLevelH..icontext_heroic
-					else
-						tmp_LR = tmp_LR..slash..colortagL..minLevelH..icontext_heroic
-					end
-				end
-				if (minLevelM) then
-					dungeon_difficulty = addon:GetDungeonDifficultyColor(minLevelM)
-					colortagL = addon:FormatColor(dungeon_difficulty)
-					local slash
 					if (minLevelH) then
-						slash = L["Slash"]
-					else
-						slash = ""
+						dungeon_difficulty = addon:GetDungeonDifficultyColor(minLevelH)
+						colortagL = addon:FormatColor(dungeon_difficulty)
+						local slash
+						if (minLevel) then
+							slash = L["Slash"]
+						else
+							slash = ""
+						end
+						if (minLevelH ~= maxLevelH) then
+							tmp_LR = tmp_LR..slash..colortagL..minLevelH.."-"..maxLevelH..icontext_heroic
+						else
+							tmp_LR = tmp_LR..slash..colortagL..minLevelH..icontext_heroic
+						end
 					end
-					if (minLevelM ~= maxLevelM) then
-						tmp_LR = tmp_LR..slash..colortagL..minLevelM.."-"..maxLevelM..icontext_mythic
-					else
-						tmp_LR = tmp_LR..slash..colortagL..minLevelM..icontext_mythic
+					if (minLevelM) then
+						dungeon_difficulty = addon:GetDungeonDifficultyColor(minLevelM)
+						colortagL = addon:FormatColor(dungeon_difficulty)
+						local slash
+						if (minLevelH) then
+							slash = L["Slash"]
+						else
+							slash = ""
+						end
+						if (minLevelM ~= maxLevelM) then
+							tmp_LR = tmp_LR..slash..colortagL..minLevelM.."-"..maxLevelM..icontext_mythic
+						else
+							tmp_LR = tmp_LR..slash..colortagL..minLevelM..icontext_mythic
+						end
 					end
+					levelString = tmp_LR
 				end
-				levelString = tmp_LR
-			end
 
-			local tooltipTitle, tooltipText
-			if (instanceID and EJ_GetInstanceInfo and EJ_GetInstanceInfo(instanceID)) then
-				instanceID = tonumber(instanceID)
-				EJ_SelectInstance(instanceID)
-				tooltipTitle, tooltipText = EJ_GetInstanceInfo()
-			end
-			if (tooltipTitle and levelString) then
-				tooltipTitle = tooltipTitle..levelString
-			end
+				local tooltipTitle, tooltipText
+				if (instanceID and EJ_GetInstanceInfo and EJ_GetInstanceInfo(instanceID)) then
+					instanceID = tonumber(instanceID)
+					EJ_SelectInstance(instanceID)
+					tooltipTitle, tooltipText = EJ_GetInstanceInfo()
+				end
+				if (tooltipTitle and levelString) then
+					tooltipTitle = tooltipTitle..levelString
+				end
 
-			temp[k] = {
-				text = zoneName,
-				colorCode = colortag,
-				tooltipTitle = tooltipTitle,
-				tooltipText = tooltipText,
-			}
+				temp[k] = {
+					text = zoneName,
+					colorCode = colortag,
+					tooltipTitle = tooltipTitle,
+					tooltipText = tooltipText,
+				}
+			end
 		end
 
 		local function IsSelected(index) return index == addon.db.profile.options.dropdowns.zone; end

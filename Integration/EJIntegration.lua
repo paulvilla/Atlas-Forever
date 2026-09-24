@@ -72,40 +72,41 @@ function addon:GetBossName(bossname, encounterID, creatureIndex, moduleName)
 			end
 
 			if (encounter == nil) then
-				if (bossname and BB[bossname]) then
+				if (bossname and BB and BB[bossname]) then
 					bossname = BB[bossname]
-				elseif (bossname and L[bossname]) then
+				elseif (bossname and L and L[bossname]) then
 					bossname = LL and LL[bossname] or bossname
 				else
+					-- Keep original bossname if no translation found
 					--bossname = bossname
 				end
 			else
 				-- If this is a specific creature in an encounter, skip the image because it either duplicates the main image or doesn't have an image at all
 				if (creatureIndex) then
 					-- Add padding to account for the main image
-					bossname = "          "..encounter
+					bossname = "          "..(encounter or "Unknown")
 				else
-					bossname = iconImage and format("|T%d:0:2.5|t%s", iconImage, encounter) or encounter
+					bossname = iconImage and format("|T%d:0:2.5|t%s", iconImage, encounter) or (encounter or bossname)
 				end
 			end
-		elseif (bossname and L[bossname]) then
+		elseif (bossname and L and L[bossname]) then
 			bossname = LL and LL[bossname] or bossname
-		elseif (bossname and BB[bossname]) then
+		elseif (bossname and BB and BB[bossname]) then
 			bossname = BB[bossname]
 		else
 			--bossname = bossname
 		end
 	else
-		if (bossname and BB[bossname]) then
+		if (bossname and BB and BB[bossname]) then
 			bossname = BB[bossname]
-		elseif (bossname and L[bossname]) then
+		elseif (bossname and L and L[bossname]) then
 			bossname = LL and LL[bossname] or bossname
 		else
 			--bossname = bossname
 		end
 	end
 
-	return bossname
+	return bossname or "Unknown Boss"
 end
 
 function Atlas_GetBossName(bossname, encounterID, creatureIndex)

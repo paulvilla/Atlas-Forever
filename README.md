@@ -1,4 +1,10 @@
-Updated and maintained fork of [Atlas](https://www.curseforge.com/wow/addons/atlas). This fork includes all maps from previous expansion map packs, as well as new SL, DF and TWW maps.
+# Atlas - Fork
+
+This is a **fork** of the [Atlas](https://www.curseforge.com/wow/addons/atlas-fork) addon from CurseForge.
+
+Originally, I made this modification for my personal use on World of Warcraft Forever. After seeing how well it worked, I decided to release it to the community.
+
+**All the hard work and original development of the Atlas addon was done by nanderson11**. This fork is simply a continuation and compilation of their contributions.
 
 ## About Atlas
 Atlas is an addon for World of Warcraft that includes detailed maps for every

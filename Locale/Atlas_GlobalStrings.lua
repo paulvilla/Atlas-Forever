@@ -30,9 +30,14 @@ local WoWClassicEra, WoWClassic, WoWRetail
 local wowversion = select(4, GetBuildInfo())
 if wowversion < 40000 then
 	WoWClassicEra = true
-elseif wowversion > 40000 and wowversion < 90000 then
+elseif wowversion >= 40000 and wowversion < 90000 then
 	WoWClassic = true
-elseif wowversion > 90000 then
+elseif wowversion >= 90000 then
+	WoWRetail = true
+end
+
+-- If version detection failed, assume retail (most common case for modern WoW)
+if not WoWClassicEra and not WoWClassic and not WoWRetail then
 	WoWRetail = true
 end
 

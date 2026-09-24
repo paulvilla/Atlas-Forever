@@ -173,13 +173,18 @@ local function registerModule(moduleKey)
 	-- register module maps' dropdowns order
 	if (module.db.DropDownLayouts_Order) then
 		for k_cat, v_cat in pairs(module.db.DropDownLayouts_Order) do
-			if (not addon.dropdowns.DropDownLayouts_Order[k_cat]) then
-				addon.dropdowns.DropDownLayouts_Order[k_cat] = v_cat
-			else
-				for i = 1, #module.db.DropDownLayouts_Order[k_cat] do
-					local v = module.db.DropDownLayouts_Order[k_cat][i]
-					if (not tContains(addon.dropdowns.DropDownLayouts_Order[k_cat], v)) then
-						tinsert(addon.dropdowns.DropDownLayouts_Order[k_cat], v)
+			-- Skip entries with nil keys
+			if (k_cat) then
+				if (not addon.dropdowns.DropDownLayouts_Order[k_cat]) then
+					addon.dropdowns.DropDownLayouts_Order[k_cat] = v_cat
+				else
+					if (type(v_cat) == "table") then
+						for i = 1, #v_cat do
+							local v = v_cat[i]
+							if (not tContains(addon.dropdowns.DropDownLayouts_Order[k_cat], v)) then
+								tinsert(addon.dropdowns.DropDownLayouts_Order[k_cat], v)
+							end
+						end
 					end
 				end
 			end
@@ -188,17 +193,24 @@ local function registerModule(moduleKey)
 	-- register module maps' dropdowns menus
 	if (module.db.DropDownLayouts) then
 		for k_cat, v_cat in pairs(module.db.DropDownLayouts) do
-			if (not addon.dropdowns.DropDownLayouts[k_cat]) then
-				addon.dropdowns.DropDownLayouts[k_cat] = v_cat
-			else
-				for k_scat, v_scat in pairs(module.db.DropDownLayouts[k_cat]) do
-					if (not addon.dropdowns.DropDownLayouts[k_cat][k_scat]) then
-						addon.dropdowns.DropDownLayouts[k_cat][k_scat] = v_scat
-					else
-						for i = 1, #module.db.DropDownLayouts[k_cat][k_scat] do
-							local v = module.db.DropDownLayouts[k_cat][k_scat][i]
-							if (not tContains(addon.dropdowns.DropDownLayouts[k_cat][k_scat], v)) then
-								tinsert(addon.dropdowns.DropDownLayouts[k_cat][k_scat], v)
+			-- Skip entries with nil keys (happens when constants are nil during data loading)
+			if (k_cat) then
+				if (not addon.dropdowns.DropDownLayouts[k_cat]) then
+					addon.dropdowns.DropDownLayouts[k_cat] = v_cat
+				else
+					for k_scat, v_scat in pairs(module.db.DropDownLayouts[k_cat]) do
+						-- Skip entries with nil keys
+						if (k_scat) then
+							if (not addon.dropdowns.DropDownLayouts[k_cat][k_scat]) then
+								addon.dropdowns.DropDownLayouts[k_cat][k_scat] = v_scat
+							else
+								for i = 1, #module.db.DropDownLayouts[k_cat][k_scat] do
+									local v = module.db.DropDownLayouts[k_cat][k_scat][i]
+									-- Only add if the map exists in AtlasMaps
+									if (AtlasMaps[v] and not tContains(addon.dropdowns.DropDownLayouts[k_cat][k_scat], v)) then
+										tinsert(addon.dropdowns.DropDownLayouts[k_cat][k_scat], v)
+									end
+								end
 							end
 						end
 					end
@@ -438,6 +450,10 @@ end
 -- Comparator function for alphabetic sorting of maps
 -- Yey, one function for everything
 local function sortZonesAlpha(a, b)
+	-- Check if both maps exist before comparing
+	if not AtlasMaps[a] or not AtlasMaps[b] then
+		return false
+	end
 	local aa = sanitizeName(AtlasMaps[a].ZoneName[1])
 	local bb = sanitizeName(AtlasMaps[b].ZoneName[1])
 	return aa < bb
@@ -447,23 +463,34 @@ function addon:PopulateDropdowns()
 	local i = 1
 	local catName = addon.dropdowns.DropDownLayouts_Order[profile.options.dropdowns.menuType]
 	local subcatOrder = addon.dropdowns.DropDownLayouts_Order[catName]
-	if (subcatOrder and type(subcatOrder) == "table") then
+	if (catName and subcatOrder and type(subcatOrder) == "table") then
 		sort(subcatOrder)
 		for n = 1, #subcatOrder, 1 do
-			local subcatItems = addon.dropdowns.DropDownLayouts[catName][subcatOrder[n]]
-			sort(subcatItems, sortZonesAlpha)
+			if (addon.dropdowns.DropDownLayouts[catName] and subcatOrder[n]) then
+				local subcatItems = addon.dropdowns.DropDownLayouts[catName][subcatOrder[n]]
+				if (subcatItems) then
+					-- Filter out items that don't exist in AtlasMaps before sorting
+					local validItems = {}
+					for _, item in ipairs(subcatItems) do
+						if AtlasMaps[item] then
+							tinsert(validItems, item)
+						end
+					end
+					sort(validItems, sortZonesAlpha)
 
-			local q = (#subcatItems - (#subcatItems % ATLAS_MAX_MENUITEMS)) / ATLAS_MAX_MENUITEMS or 0
-			for p = 0, q do
-				ATLAS_DROPDOWNS[i + p] = {}
+					local q = (#validItems - (#validItems % ATLAS_MAX_MENUITEMS)) / ATLAS_MAX_MENUITEMS or 0
+					for p = 0, q do
+						ATLAS_DROPDOWNS[i + p] = {}
+					end
+
+					for k, v in pairs(validItems) do
+						local q1 = (k - (k % ATLAS_MAX_MENUITEMS)) / ATLAS_MAX_MENUITEMS
+						if v then tinsert(ATLAS_DROPDOWNS[i + q1], v) end
+					end
+
+					i = i + q + 1
+				end
 			end
-
-			for k, v in pairs(subcatItems) do
-				local q1 = (k - (k % ATLAS_MAX_MENUITEMS)) / ATLAS_MAX_MENUITEMS
-				if v then tinsert(ATLAS_DROPDOWNS[i + q1], v) end
-			end
-
-			i = i + q + 1
 		end
 	end
 
@@ -557,6 +584,9 @@ end
 
 --Called whenever the Atlas frame is displayed
 function Atlas_OnShow()
+	-- Auto-detect instance map if player is in a dungeon
+	addon:AutoSelectInstanceMap()
+	
 	if (profile.options.autoSelect) then
 		Atlas_AutoSelect()
 	end
@@ -637,12 +667,26 @@ function addon:GetDungeonDifficultyColor(minRecLevel)
 
 	local greenLevel
 	if (WoWClassicEra or WoWClassic) then
-		greenLevel = GetQuestGreenRange()
+		if (GetQuestGreenRange) then
+			greenLevel = GetQuestGreenRange()
+		else
+			greenLevel = 5 -- Default fallback for WoW Forever
+		end
 	else
-		greenLevel = UnitQuestTrivialLevelRange('player')
+		if (UnitQuestTrivialLevelRange) then
+			greenLevel = UnitQuestTrivialLevelRange('player')
+		else
+			greenLevel = 5 -- Default fallback
+		end
+	end
+	
+	-- Ensure greenLevel has a valid value
+	if (not greenLevel) then
+		greenLevel = 5
 	end
 
-	local lDiff = minRecLevel - UnitLevel("player")
+	local playerLevel = UnitLevel("player") or 1
+	local lDiff = minRecLevel - playerLevel
 	if (lDiff >= 0) then
 		for i = 1.00, 0.10, -0.10 do
 			color = { r = 1.00, g = i, b = 0.00 }
@@ -751,7 +795,7 @@ function addon:MapAddNPCButton()
 
 				local tip_title
 				for k, v in pairs(AtlasMaps[zoneID]) do
-					if (type(v[2]) == "number") then
+					if (type(v) == "table" and type(v[2]) == "number") then
 						if (v[2] == info_id) then
 							tip_title = v[1]
 							if (v[3] and v[3] == "item") then
@@ -1234,10 +1278,10 @@ function Atlas_MapRefresh(mapID)
 	addon:MapAddNPCButton()
 
 	-- LFG Button
-	if (WoWClassicEra and C_LFGList.IsPremadeGroupFinderEnabled() and (base.ActivityID or base.ActivityIDSoD)) then
+	if (WoWClassicEra and C_LFGList and C_LFGList.IsPremadeGroupFinderEnabled() and (base.ActivityID or base.ActivityIDSoD)) then
 		AtlasFrameLFGButton:Show();
 
-		if (C_Seasons.GetActiveSeason() == 2 and base.ActivityIDSoD) then
+		if (C_Seasons and C_Seasons.GetActiveSeason() == 2 and base.ActivityIDSoD) then
 			AtlasFrameLFGButton.ActivityID = base.ActivityIDSoD;
 		elseif (base.ActivityID) then
 			AtlasFrameLFGButton.ActivityID = base.ActivityID;
@@ -1299,6 +1343,15 @@ function Atlas_Refresh(mapID)
 		matches = addon.assocs.InstToEntMatches[zoneID]
 		defaultText = ATLAS_ENTRANCE_BUTTON
 	end
+
+	-- Filter out invalid maps
+	local validMatches = {}
+	for _, match in ipairs(matches) do
+		if AtlasMaps[match] then
+			tinsert(validMatches, match)
+		end
+	end
+	matches = validMatches
 
 	sort(matches, sortZonesAlpha)
 
@@ -1397,6 +1450,67 @@ end
 -- If a match is found display that map right away
 -- update for Outland zones contributed by Drahcir
 -- 3/23/08 now takes SubZones into account as well
+
+-- Auto-select instance map if player is in a dungeon
+function addon:AutoSelectInstanceMap()
+	local profile = addon.db.profile
+	
+	-- Check if player is in an instance using IsInInstance()
+	local inInstance = false
+	local instanceName = nil
+	
+	if (IsInInstance) then
+		inInstance = IsInInstance()
+	end
+	
+	-- If not in instance via IsInInstance, try GetInstanceInfo
+	if (not inInstance and GetInstanceInfo) then
+		instanceName = GetInstanceInfo()
+		-- If GetInstanceInfo returns a non-empty string, we're in an instance
+		if (instanceName and instanceName ~= "") then
+			inInstance = true
+		end
+	end
+	
+	-- If still not confirmed but we have GetInstanceInfo, use it for the name
+	if (inInstance and not instanceName and GetInstanceInfo) then
+		instanceName = GetInstanceInfo()
+	end
+	
+	-- Only proceed if we're definitely in an instance
+	if (not inInstance or not instanceName or instanceName == "") then
+		return
+	end
+	
+	-- Now search for matching map by instance name
+	for mapKey, mapData in pairs(AtlasMaps) do
+		if (mapData and mapData.ZoneName and mapData.ZoneName[1]) then
+			-- Get clean zone name (remove color codes)
+			local cleanZoneName = mapData.ZoneName[1]
+			-- Simple color code removal
+			cleanZoneName = string.gsub(cleanZoneName, "|c[fF][fF][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]", "")
+			cleanZoneName = string.gsub(cleanZoneName, "|r", "")
+			
+			-- Check if instance name matches
+			if (instanceName == mapData.ZoneName[1] or instanceName == cleanZoneName) then
+				-- Find the map in ATLAS_DROPDOWNS and select it
+				for type_k, type_v in pairs(ATLAS_DROPDOWNS) do
+					if (type_v and type(type_v) == "table") then
+						for zone_k, zone_v in pairs(type_v) do
+							if (zone_v == mapKey) then
+								profile.options.dropdowns.module = type_k
+								profile.options.dropdowns.zone = zone_k
+								Atlas_Refresh()
+								return
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 function Atlas_AutoSelect()
 	local currentZone = getFixedZoneText()
 	local currentSubZone = GetSubZoneText()
@@ -1465,14 +1579,14 @@ function Atlas_AutoSelect()
 			debug("Checking if instance/entrance pair can be found.")
 		elseif (zoneID and addon.assocs.InstToEntMatches[zoneID]) then
 			for ka, va in pairs(addon.assocs.InstToEntMatches[zoneID]) do
-				if (currentZone == AtlasMaps[va].ZoneName[1]) then
+				if (AtlasMaps[va] and currentZone == AtlasMaps[va].ZoneName[1]) then
 					debug("Instance/entrance pair found. Doing nothing.")
 					return
 				end
 			end
 		elseif (zoneID and addon.assocs.EntToInstMatches[zoneID]) then
 			for ka, va in pairs(addon.assocs.EntToInstMatches[zoneID]) do
-				if (currentZone == AtlasMaps[va].ZoneName[1]) then
+				if (AtlasMaps[va] and currentZone == AtlasMaps[va].ZoneName[1]) then
 					debug("Instance/entrance pair found. Doing nothing.")
 					return
 				end
@@ -1635,7 +1749,8 @@ function addon:OnEnable()
 		ScrollBar:SetPoint("TOPLEFT", ScrollBox, "TOPRIGHT")
 		ScrollBar:SetPoint("BOTTOMLEFT", ScrollBox, "BOTTOMRIGHT")
 	else
-		ScrollBar = CreateFrame("EventFrame", nil, AtlasFrameBottomInset, "WowClassicScrollBar")
+		-- For Classic/WoW Forever: Use MinimalScrollBar as it's more compatible
+		ScrollBar = CreateFrame("EventFrame", nil, AtlasFrameBottomInset, "MinimalScrollBar")
 		ScrollBar:SetPoint("TOPLEFT", ScrollBox, "TOPRIGHT", -3, 6)
 		ScrollBar:SetPoint("BOTTOMLEFT", ScrollBox, "BOTTOMRIGHT", -3, -7)
 	end

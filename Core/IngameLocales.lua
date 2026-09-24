@@ -25,11 +25,11 @@
 
 function Atlas_GetClassName(class)
 	if (not LOCALIZED_CLASS_NAMES_MALE[class]) then
-		return nil;
+		return class or "";
 	end
 	if (UnitSex("player") == "3") then
-		return LOCALIZED_CLASS_NAMES_FEMALE[class];
+		return LOCALIZED_CLASS_NAMES_FEMALE[class] or class or "";
 	else
-		return LOCALIZED_CLASS_NAMES_MALE[class];
+		return LOCALIZED_CLASS_NAMES_MALE[class] or class or "";
 	end
 end

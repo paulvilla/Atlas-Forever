@@ -36,8 +36,8 @@
 ## Category-zhCN: 地图
 ## Category-zhTW: 地圖
 
-## Author: nanderson11
-## Version: @project-version@
+## Author: Lizerius (Fork from nanderson11)
+## Version: v3.17.0
 ## Group: Atlas
 ## X-Website: https://github.com/nanderson11/Atlas
 ## X-Category: Map
@@ -77,15 +77,5 @@ Integration\WorldMap.lua
 Integration\Achievements.lua
 Integration\AtlasLootIntegration.lua
 
-Data\Classic-Retail.lua
-Data\BurningCrusade-Retail.lua
-Data\WrathoftheLichKing-Retail.lua
-Data\Cataclysm-Retail.lua
-Data\MistsofPandaria-Retail.lua
-Data\WarlordsofDraenor-Retail.lua
-Data\Legion-Retail.lua
-Data\BattleforAzeroth-Retail.lua
-Data\Shadowlands-Retail.lua
-Data\Dragonflight-Retail.lua
-Data\TheWarWithin-Retail.lua
-Data\Midnight-Retail.lua
+# WoW Forever - Classic Era Only
+Data\Classic-Classic.lua
