@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.18.2 - September 24, 2026
+### Update
+Update Library
+
 ## 3.18.1 - September 24, 2026
 I’ve sorted out the issue where some features weren’t working (I think I uploaded the latest version I created)
 
