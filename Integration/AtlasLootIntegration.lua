@@ -45,6 +45,7 @@ local modules = {}
 if WoWClassicEra then
 	modules = {
 		Atlas_ClassicWoW = "AtlasLoot_Classic",
+		Atlas_Forever    = "AtlasLoot_Classic",
 	}
 elseif WoWClassicTBC then
 	modules = {

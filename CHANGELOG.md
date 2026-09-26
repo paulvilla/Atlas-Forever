@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.18.1 - September 24, 2026
+I’ve sorted out the issue where some features weren’t working (I think I uploaded the latest version I created)
+
 ## 3.18.0 - September 24, 2026
 ### Added
 - Added Alliance and Horde flight route maps in both Kalimdor and Eastern Kingdoms
