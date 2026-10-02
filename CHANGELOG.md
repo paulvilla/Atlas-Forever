@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.18.3 - October 2, 2026
+## 3.18.4 - October 2, 2026
 ### Changed
 - Renamed internal project structure from Forever to Camelot
   - Data files: Classic-Camelot.lua, FlightRoutes-Camelot.lua
