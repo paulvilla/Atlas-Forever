@@ -19,7 +19,7 @@ local GREN = "|cff66cc33"
 -- How to Get There maps are stored in Images/Atlas_HTGT/
 db.AtlasMaps.CE_Gnomeregan = {
 	ZoneName = { ALC["ATLAS_HTGT_GNOMEREGAN"] or "15-23 Gnomeregan" },
-	Location = { ALC["ATLAS_FOREVER_HALL_OF_THANES_LOC"] or "Dun Morogh" },
+	Location = { ALC["ATLAS_CAMELOT_HALL_OF_THANES_LOC"] or "Dun Morogh" },
 	LevelRange = "15-23",
 	MinLevel = 15,
 	Module = "Atlas_HTGT",
@@ -101,7 +101,7 @@ db.AtlasMaps.CE_WailingCaverns = {
 
 db.AtlasMaps.CE_TheHallOfThanes = {
 	ZoneName = { ALC["ATLAS_HTGT_HALL_OF_THANES"] or "13-18 Hall of Thanes" },
-	Location = { ALC["ATLAS_FOREVER_HALL_OF_THANES_LOC"] or "Dun Morogh" },
+	Location = { ALC["ATLAS_CAMELOT_HALL_OF_THANES_LOC"] or "Dun Morogh" },
 	LevelRange = "13-18",
 	MinLevel = 13,
 	Module = "Atlas_HTGT",
@@ -112,7 +112,7 @@ db.AtlasMaps.CE_TheHallOfThanes = {
 
 db.AtlasMaps.CE_RuinsOfLordaeron = {
 	ZoneName = { ALC["ATLAS_HTGT_RUINS_OF_LORDAERON"] or "15-20 Ruins of Lordaeron" },
-	Location = { ALC["ATLAS_FOREVER_RUINS_OF_LORDAERON_LOC"] or "Tirisfal Glades" },
+	Location = { ALC["ATLAS_CAMELOT_RUINS_OF_LORDAERON_LOC"] or "Tirisfal Glades" },
 	LevelRange = "15-20",
 	MinLevel = 15,
 	Module = "Atlas_HTGT",

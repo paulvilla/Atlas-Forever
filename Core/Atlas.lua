@@ -684,7 +684,7 @@ function addon:GetDungeonDifficultyColor(minRecLevel)
 		if (GetQuestGreenRange) then
 			greenLevel = GetQuestGreenRange()
 		else
-			greenLevel = 5 -- Default fallback for WoW Forever
+			greenLevel = 5 -- Default fallback for Project Camelot
 		end
 	else
 		if (UnitQuestTrivialLevelRange) then
@@ -1955,7 +1955,7 @@ function addon:OnEnable()
 		ScrollBar:SetPoint("TOPLEFT", ScrollBox, "TOPRIGHT")
 		ScrollBar:SetPoint("BOTTOMLEFT", ScrollBox, "BOTTOMRIGHT")
 	else
-		-- For Classic/WoW Forever: Use MinimalScrollBar as it's more compatible
+		-- For Classic/Project Camelot: Use MinimalScrollBar as it's more compatible
 		ScrollBar = CreateFrame("EventFrame", nil, AtlasFrameBottomInset, "MinimalScrollBar")
 		ScrollBar:SetPoint("TOPLEFT", ScrollBox, "TOPRIGHT", -3, 6)
 		ScrollBar:SetPoint("BOTTOMLEFT", ScrollBox, "BOTTOMRIGHT", -3, -7)

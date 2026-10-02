@@ -77,8 +77,8 @@ Integration\WorldMap.lua
 Integration\Achievements.lua
 Integration\AtlasLootIntegration.lua
 
-# WoW Forever - Classic Era Only
+# Project Camelot - Classic Era Only
 Data\Classic-Classic.lua
 Data\Classic-HTGT.lua
-Data\FlightRoutes-Forever.lua
-Data\Forever-Classic.lua
+Data\FlightRoutes-Camelot.lua
+Data\Classic-Camelot.lua

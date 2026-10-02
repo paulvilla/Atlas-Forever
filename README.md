@@ -8,7 +8,7 @@ Originally, I made this modification for my personal use on World of Warcraft Fo
 
 ## Features
 
-This fork includes all the original Atlas functionality plus the following improvements made specifically for WoW Forever and Classic Era:
+This fork includes all the original Atlas functionality plus the following improvements made specifically for World of Warcraft Forever and Classic Era:
 
 - Dungeons separated by continent with boss order and positions marked
 - Automatic dungeon detection: Atlas selects the current dungeon map automatically when opened inside an instance
