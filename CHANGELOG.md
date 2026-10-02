@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.18.3 - October 2, 2026
+### Changed
+- Renamed internal project structure from Forever to Camelot
+  - Data files: Classic-Camelot.lua, FlightRoutes-Camelot.lua
+  - Image folder: Images/Atlas_Camelot/
+  - Module names: Atlas_Camelot / Camelot
+  - Localization keys: ATLAS_CAMELOT_* (visible names remain as Forever)
+- Updated Ruins of Lordaeron boss order: Witherfang, The Baron, Viktor The Vile, The Abandoned, Rath'mael, Bjork
+
 ## 3.18.2 - September 24, 2026
 ### Update
 Update Library
