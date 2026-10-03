@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.18.6 - October 3, 2026
+### Fixed
+- Fixed map selection changing when minimizing/restoring the Atlas window: map auto-selection now only runs when opening Atlas, not when swapping between the large and minimized frames
+
 ## 3.18.5 - October 3, 2026
 ### Changed
 - Updated Hall of Thanes map with boss positions

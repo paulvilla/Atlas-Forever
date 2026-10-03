@@ -598,11 +598,16 @@ end
 
 --Called whenever the Atlas frame is displayed
 function Atlas_OnShow()
-	-- Auto-detect instance map if player is in a dungeon
-	addon:AutoSelectInstanceMap()
-	
-	if (profile.options.autoSelect) then
-		Atlas_AutoSelect()
+	if (addon.suppressAutoSelectOnce) then
+		-- Show came from a large <-> small frame swap; keep the selected map
+		addon.suppressAutoSelectOnce = nil
+	else
+		-- Auto-detect instance map if player is in a dungeon
+		addon:AutoSelectInstanceMap()
+
+		if (profile.options.autoSelect) then
+			Atlas_AutoSelect()
+		end
 	end
 
 	AtlasFrameDropDownType_OnShow()

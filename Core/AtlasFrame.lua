@@ -126,6 +126,9 @@ local function SyncFrameTopLeft(sourceFrame, targetFrame)
 end
 
 function addon:ToggleLegendPanel()
+	-- Swapping large <-> small frame must not re-run map auto-selection,
+	-- otherwise the user's currently selected map gets overwritten
+	self.suppressAutoSelectOnce = true
 	if (AtlasFrameSmall:IsVisible()) then
 		-- Switching small -> large; keep TOPLEFT fixed
 		SyncFrameTopLeft(AtlasFrameSmall, AtlasFrame)
@@ -139,6 +142,8 @@ function addon:ToggleLegendPanel()
 		AtlasFrame:Hide()
 		AtlasFrameSmall:Show()
 	end
+	-- OnShow consumed the flag already; clear it defensively in case it didn't fire
+	self.suppressAutoSelectOnce = nil
 end
 
 -- Called whenever the map type dropdown menu is shown
