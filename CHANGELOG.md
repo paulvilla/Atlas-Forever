@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.18.5 - October 3, 2026
+### Changed
+- Updated Hall of Thanes map with boss positions
+- Updated Ruins of Lordaeron map resolution
+
 ## 3.18.4 - October 2, 2026
 ### Changed
 - Renamed internal project structure from Forever to Camelot

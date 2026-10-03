@@ -22,7 +22,7 @@ local WHIT = "|cffffffff"
 --------------------------------------------------------------
 db.AtlasMaps = {
 	HallOfThanes = {
-		ZoneName = { ALC["ATLAS_CAMELOT_HALL_OF_THANES"] or "Hall of Thanes (Forever)" },
+		ZoneName = { ALC["ATLAS_CAMELOT_HALL_OF_THANES"] or "The Hall of Thanes (Forever)" },
 		Location = { ALC["ATLAS_CAMELOT_HALL_OF_THANES_LOC"] or "Deep Below Ironforge" },
 		LevelRange = "13-18",
 		MinLevel = 13,
@@ -31,7 +31,7 @@ db.AtlasMaps = {
 		Acronym = "HoT",
 		Module = "Atlas_Camelot",
 		{ WHIT.." 1) Faldrim Anvilmar" },
-		{ WHIT.." 2) Infurnus" },
+		{ WHIT.." 2) Magmatus" },
 		{ WHIT.." 3) Plunder" },
 		{ WHIT.." 4) Durgen Dirgehammer" },
 	},
